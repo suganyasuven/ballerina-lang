@@ -19,6 +19,7 @@
 package io.ballerina.cli.launcher;
 
 import io.ballerina.cli.BLauncherCmd;
+import io.ballerina.cli.cmd.CompletionCommand;
 import io.ballerina.cli.launcher.util.BCompileUtil;
 import io.ballerina.runtime.internal.util.RuntimeUtils;
 import io.ballerina.runtime.internal.util.exceptions.BLangRuntimeException;
@@ -84,6 +85,10 @@ public class Main {
             CommandLine cmdParser = new CommandLine(defaultCmd);
             defaultCmd.setParentCmdParser(cmdParser);
 
+            CompletionCommand completionCmd = new CompletionCommand(outStream);
+            CommandLine completionCmdParser = new CommandLine(completionCmd);
+            completionCmd.setParentCmdParser(completionCmdParser);
+
             // Set stop at positional before the other commands are added as sub commands, to enforce ordering only
             // for the run command
             cmdParser.setStopAtPositional(true);
@@ -91,6 +96,16 @@ public class Main {
             // loading additional commands via SPI
             ServiceLoader<BLauncherCmd> bCmds = ServiceLoader.load(BLauncherCmd.class);
             for (BLauncherCmd bCmd : bCmds) {
+                if (bCmd.getName().equals("bash-dist")) {
+                    completionCmdParser.addSubcommand(bCmd.getName(), bCmd);
+                    bCmd.setParentCmdParser(completionCmdParser);
+                    continue;
+                }
+
+                if (bCmd.getName().equals("completion")) {
+                    continue;
+                }
+
                 cmdParser.addSubcommand(bCmd.getName(), bCmd);
                 bCmd.setParentCmdParser(cmdParser);
             }
@@ -120,6 +135,11 @@ public class Main {
             EncryptCmd encryptCmd = new EncryptCmd();
             cmdParser.addSubcommand(BallerinaCliCommands.ENCRYPT, encryptCmd);
             encryptCmd.setParentCmdParser(cmdParser);
+
+            completionCmdParser.setCommandName("completion");
+            completionCmdParser.setPosixClusteredShortOptionsAllowed(false);
+
+            cmdParser.addSubcommand(completionCmd.getName(), completionCmdParser);
 
             cmdParser.setCommandName("bal");
             cmdParser.setPosixClusteredShortOptionsAllowed(false);

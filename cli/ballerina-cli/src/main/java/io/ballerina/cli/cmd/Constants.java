@@ -38,4 +38,6 @@ public class Constants {
     static final String CLEAN_COMMAND = "clean";
     static final String UNINSTALL_COMMAND = "uninstall";
     static final String SHELL_COMMAND = "shell";
+    static final String COMPLETION_COMMAND = "completion";
+    static final String BASH_DIST_COMMAND = "bash-dist";
 }
